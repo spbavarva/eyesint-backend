@@ -9,6 +9,10 @@ from sslnew import ssl_analyzer
 from mailex import mail
 from crawler import crawlmain
 import asyncio
+from phone import number
+from name import nameinfo
+from pdf import pdfinfo
+from domain import domainS
 
 loop = asyncio.get_event_loop()
 
@@ -99,6 +103,55 @@ def get_crawl():
     # data={}
     crawl_results = crawlmain(url, output, data)
     return jsonify({"data": crawl_results}), 200
+
+@app.route("/foot/phone", methods=["POST"])
+def get_number():
+    data = request.get_json()
+    url = data.get("url")
+    result = number(url)
+    print(result)
+    return jsonify({"data": result}), 200 
+
+@app.route("/foot/nameinfo", methods=["POST"])
+def get_name():
+    data = request.get_json()
+    url = data.get("url")
+    result = nameinfo(url)
+    print(result)
+    return jsonify({"data": result}), 200 
+
+@app.route("/foot/domainS", methods=["POST"])
+def get_domain():
+    data = request.get_json()
+    domain = data.get("url")  # Change "url" to "domain" to match the frontend input
+    # Call the domainS function to fetch domain information
+    result = domainS(domain)
+    print(result)
+    # Return the result as a JSON response to the frontend
+    return jsonify({"data": result}), 200
+
+
+@app.route("/foot/pdfinfo", methods=["POST"])
+def get_pdf():
+    try:
+        file = request.files["file"]
+        if file:
+            # Save the uploaded file temporarily (optional)
+            file_path = "temp.pdf"  # Change the path as needed
+            file.save(file_path)
+
+            # Call pdfinfo function to extract metadata
+            metadata = pdfinfo(file_path)
+
+            # Remove the temporary file if needed
+            # os.remove(file_path)
+
+            return jsonify({"data": metadata}), 200
+        else:
+            return jsonify({"message": "Please select a PDF file."}), 400
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
 
 # Example route to fetch all users from the database
 @app.route("/users", methods=["GET"])

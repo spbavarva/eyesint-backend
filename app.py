@@ -8,11 +8,13 @@ from whoiss import whois_lookup
 from sslnew import ssl_analyzer
 from mailex import mail
 from crawler import crawlmain
+# from crawler import clean_output
 import asyncio
 from phone import number
 from name import nameinfo
 from pdf import pdfinfo
 from domain import domainS
+from port import scan_port
 
 loop = asyncio.get_event_loop()
 
@@ -102,7 +104,16 @@ def get_crawl():
     output = []
     # data={}
     crawl_results = crawlmain(url, output, data)
+    print("ERDTFGYHUJIAZSXDFCGVHBJNKXDCFGVHBJNKM")
+    print(crawl_results)
     return jsonify({"data": crawl_results}), 200
+
+def get_port():
+    data = request.get_json()
+    url = data.get("url")
+    result = scan_port(url)  # Call the scan_port function with the provided URL
+    print(result)
+    return jsonify({"data": result}), 200
 
 @app.route("/foot/phone", methods=["POST"])
 def get_number():

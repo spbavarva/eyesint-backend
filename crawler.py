@@ -9,6 +9,7 @@ import requests
 import threading
 import tldextract
 from datetime import date
+# from flask import Flask, request, jsonify
 requests.packages.urllib3.disable_warnings()
 
 user_agent = {'User-Agent': 'Eyesint'}
@@ -35,7 +36,7 @@ Y = '\033[0m'
 # def crawlmain():
 
 def crawlmain(target, output, data):
-    global soup, r_url, sm_url
+    global soup, r_total, sm_total, css_total, js_total, js_crawl_total, sm_crawl_total, int_total, ext_total, img_total
     print(f'\n{Y}[!] Starting Crawler...{W}\n')
 
     try:
@@ -80,7 +81,20 @@ def crawlmain(target, output, data):
             js_crawl(data, output))
         loop.run_until_complete(tasks)
         loop.close()
-        stats(output, data)
+        
+        results = {
+        'robots': list(r_total),
+        'sitemap': list(sm_total),
+        'css': list(css_total),
+        'javascripts': list(js_total),
+        'internal_urls': list(int_total),
+        'external_urls': list(ext_total),
+        'images': list(img_total),
+        'urls_inside_sitemap': list(sm_crawl_total),
+        'urls_inside_js': list(js_crawl_total)
+        }
+        
+        return results
     else:
         print(f'{R}[-] {C}Status : {W}{sc}')
 
@@ -371,44 +385,38 @@ async def js_crawl(data, output):
     exporter(data, output, js_crawl_total, 'urls_inside_js')
 
 
-def exporter(data, output, list_name, file_name):
-    data[f'module-crawler-{file_name}'] = ({'links': list(list_name)})
+def exporter(data,output, list_name, file_name):
+    # Create an HTML list of clickable links
+    html_links = '<ul>'
+    for link in list_name:
+        html_links += f'<li><a href="{link}" target="_blank">{link}</a></li>'
+    html_links += '</ul>'
+    
+    # Store the HTML code in the data dictionary
+    data[f'module-crawler-{file_name}'] = {'links': html_links}
     data[f'module-crawler-{file_name}'].update({'exported': False})
 
-    # Print the results to the terminal
+    # Print the results to the terminal (HTML code)
     print(f'\n{Y}[+] {C}Crawler Results ({file_name}){W}')
-    for link in list_name:
-        print(link)
+    print(html_links)  # Print the HTML code
 
+if __name__ == '__main__':
+    target = 'https://www.bvmengineering.ac.in'  # Replace with your target URL
+    output = {}  # Initialize an empty dictionary to store the results
+    data = {}  # Initialize data as needed
 
-def stats(output, data):
-    global total
-
-    total = []
+    results = crawlmain(target, output, data)
+    formatted_results = {}
     
-    total.extend(r_total)
-    total.extend(sm_total)
-    total.extend(css_total)
-    total.extend(js_total)
-    total.extend(js_crawl_total)
-    total.extend(sm_crawl_total)
-    total.extend(int_total)
-    total.extend(ext_total)
-    total.extend(img_total)
-    total = set(total)
-    
-    # print(f'\nIP Address : 202.129.240.138')
-    print('[!] Starting Crawler...\n')
+    # Iterate through the original results
+    for key, value in results.items():
+        if isinstance(value, list):
+            # If the value is a list (multiple links), join them with a space
+            formatted_results[key] = ' '.join(value)
+        else:
+            formatted_results[key] = value
 
-    # Call the exporter function for each result category
-    exporter(data, output, r_total, 'robots.txt')
-    exporter(data, output, sm_total, 'sitemap.xml')
-    exporter(data, output, css_total, 'CSS Links')
-    exporter(data, output, js_total, 'Javascript Links')
-    exporter(data, output, js_crawl_total, 'URLs Inside Javascripts')
-    exporter(data, output, sm_crawl_total, 'URLs Inside Sitemaps')
-    exporter(data, output, int_total, 'Internal Links')
-    exporter(data, output, ext_total, 'External Links')
-    exporter(data, output, img_total, 'Images')
+    # Convert the formatted results to JSON
+    json_results = json.dumps(formatted_results, indent=4)
 
-    print(f'\n[+] Total Unique Links Extracted : {len(total)}')
+    print(json_results)

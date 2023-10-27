@@ -16,8 +16,19 @@ def mail(target):
     try:
         while len(urls):
             count += 1
+            if count == 56:
+                continue
+            if count == 57:
+                continue
+            if count == 58:
+                continue
+            if count == 61:
+                continue
+            if count == 60:
+                continue
             if count == 10:
                 break
+
             url = urls.popleft()
             scraped_urls.add(url)
 

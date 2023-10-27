@@ -2,6 +2,15 @@ import ssl
 import OpenSSL
 import sys
 import socket
+import datetime
+import pytz
+
+
+def convert_asn1_time(asn1_time):
+    timestamp = asn1_time.decode("utf-8")
+    dt = datetime.datetime.strptime(timestamp, "%Y%m%d%H%M%SZ")
+    dt_utc = pytz.utc.localize(dt)
+    return dt_utc.strftime("%d %B %Y %H:%M:%S %Z")
 
 def clean_url(target):
     # Remove 'https://'
@@ -31,13 +40,27 @@ def ssl_analyzer(target):
 
     result = []
     result.append('\nSSL Certificate Analysis:\n')
-    result.append(ip_address)
+    result.append(f'IP address : {ip_address}')
 
     try:
         cert = ssl.get_server_certificate((ip_address, 443))
         x509 = OpenSSL.crypto.load_certificate(
             OpenSSL.crypto.FILETYPE_PEM, cert)
+        
+        valid_from = convert_asn1_time(x509.get_notBefore())
+        valid_until = convert_asn1_time(x509.get_notAfter())
 
+        valid_from_date = datetime.datetime.strptime(valid_from, "%d %B %Y %H:%M:%S %Z")
+        valid_until_date = datetime.datetime.strptime(valid_until, "%d %B %Y %H:%M:%S %Z")
+
+        days_difference = (valid_until_date - valid_from_date).days
+
+        result.append(f'Valid from: {valid_from}')
+       
+
+        result.append(f'Valid until: {valid_until}')
+
+        result.append(f'Days Difference: {days_difference} days')
         result.append(f'Expired: {x509.has_expired()}')
         result.append(f'Signature Algorithm: {x509.get_signature_algorithm()}')
 
@@ -69,9 +92,13 @@ def ssl_analyzer(target):
         result.append(f'SHA1: {x509.digest("sha1")}')
         result.append(f'SHA256: {x509.digest("sha256")}')
         result.append(f'SHA512: {x509.digest("sha512")}')
+        # 
+        
 
-        result.append(f'\nValid from: {x509.get_notBefore()}')
-        result.append(f'Valid until: {x509.get_notAfter()}')
+      
+
+        # result.append(f'\nValid from: {x509.get_notBefore()}')
+        # result.append(f'Valid until: {x509.get_notAfter()}')
 
         result.append('exported: False')
 

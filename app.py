@@ -21,46 +21,46 @@ loop = asyncio.get_event_loop()
 app = Flask(__name__)
 CORS(app)
 
-# MongoDB connection
-client = MongoClient("mongodb+srv://shenvakalpesh4:z0LDlMgGlqs1BWBZ@cluster0.yg1kuiy.mongodb.net/?retryWrites=true&w=majority")
-db = client["Eyesint"]  
-users_collection = db["users"]
+# # MongoDB connection
+# client = MongoClient("mongodb+srv://shenvakalpesh4:z0LDlMgGlqs1BWBZ@cluster0.yg1kuiy.mongodb.net/?retryWrites=true&w=majority")
+# db = client["Eyesint"]  
+# users_collection = db["users"]
 
-# Register route
-@app.route("/register", methods=["POST"])
-def register():
-    data = request.get_json()
-    username = data.get("username")
-    email = data.get("email")
-    password = data.get("password")
+# # Register route
+# @app.route("/register", methods=["POST"])
+# def register():
+#     data = request.get_json()
+#     username = data.get("username")
+#     email = data.get("email")
+#     password = data.get("password")
 
-    # Check if the email is already registered
-    if users_collection.find_one({"email": email}):
-        return jsonify({"message": "Email is already registered"}), 400
+#     # Check if the email is already registered
+#     if users_collection.find_one({"email": email}):
+#         return jsonify({"message": "Email is already registered"}), 400
 
-    # Insert the user into the database
-    user = {
-        "username": username,
-        "email": email,
-        "password": password,  # Note: You should hash the password before storing it
-    }
-    users_collection.insert_one(user)
+#     # Insert the user into the database
+#     user = {
+#         "username": username,
+#         "email": email,
+#         "password": password,  # Note: You should hash the password before storing it
+#     }
+#     users_collection.insert_one(user)
 
-    return jsonify({"message": "Registration successful"}), 201
+#     return jsonify({"message": "Registration successful"}), 201
 
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    email = data.get("email")
-    password = data.get("password")
+# @app.route("/login", methods=["POST"])
+# def login():
+#     data = request.get_json()
+#     email = data.get("email")
+#     password = data.get("password")
 
-    # Check if a user with the provided email and password exists in the database
-    user = users_collection.find_one({"email": email, "password": password})
+#     # Check if a user with the provided email and password exists in the database
+#     user = users_collection.find_one({"email": email, "password": password})
 
-    if user:
-        return jsonify({"message": "Login successful"}), 200
-    else:
-        return jsonify({"message": "Invalid email or password"}), 401
+#     if user:
+#         return jsonify({"message": "Login successful"}), 200
+#     else:
+#         return jsonify({"message": "Invalid email or password"}), 401
 
 
 @app.route("/web/header",methods=["POST"])
@@ -164,11 +164,16 @@ def get_pdf():
         return jsonify({"message": str(e)}), 500
 
 
-# Example route to fetch all users from the database
-@app.route("/users", methods=["GET"])
-def get_users():
-    users = list(users_collection.find({}))
-    return dumps(users)
+# # Example route to fetch all users from the database
+# @app.route("/users", methods=["GET"])
+# def get_users():
+#     users = list(users_collection.find({}))
+#     return dumps(users)
+    
+# @app.route("/*", methods=["GET"])
+# def get_users():
+#     return app.send_static_file("index.html")
+
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5000, debug=True)

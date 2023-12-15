@@ -12,4 +12,5 @@ pdfminer.six
 python-whois
 phone-iso3166
 pytz
+pdfplumber
 
